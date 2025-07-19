@@ -9,17 +9,19 @@
   inherit (lib) types;
 
   kernelName = "rust";
-  
+
   # Helper function to coerce overlays into a list with validation
-  mkOverlays = overlays:
-    let
-      validateOverlay = overlay:
-        if builtins.isFunction overlay then overlay
-        else throw "Expected function, got ${builtins.typeOf overlay}";
-    in
-      if builtins.isFunction overlays then [ overlays ]
-      else if builtins.isList overlays then map validateOverlay overlays
-      else throw "Expected a function or list of functions for overlays";
+  mkOverlays = overlays: let
+    validateOverlay = overlay:
+      if builtins.isFunction overlay
+      then overlay
+      else throw "Expected function, got ${builtins.typeOf overlay}";
+  in
+    if builtins.isFunction overlays
+    then [overlays]
+    else if builtins.isList overlays
+    then map validateOverlay overlays
+    else throw "Expected a function or list of functions for overlays";
 
   kernelOptions = {
     config,
@@ -86,56 +88,57 @@
       }
       // extraKernelSpc;
   in {
-    options = {
-      evcxr = lib.mkOption {
-        type = types.package;
-        default = config.nixpkgs.evcxr;
-        example = lib.literalExpression "pkgs.evcxr";
-        description = ''
-          An evaluation context for Rust.
-        '';
-      };
+    options =
+      {
+        evcxr = lib.mkOption {
+          type = types.package;
+          default = config.nixpkgs.evcxr;
+          example = lib.literalExpression "pkgs.evcxr";
+          description = ''
+            An evaluation context for Rust.
+          '';
+        };
 
-      # Allow users to pass one or more overlay functions directly
-      overlays = lib.mkOption {
-        type = types.listOf types.function;
-        default = [ self.inputs.rust-overlay.overlays.default ];
-        defaultText = lib.literalExpression "[ self.inputs.rust-overlay.overlays.default ]";
-        example = lib.literalExpression "[ myCustomOverlay ]";
-        description = ''
-          A list of nixpkgs overlay functions to apply when building the Rust kernel.
-          Each overlay should have the form: `final: prev: { … }`.
-        '';
-      };
+        # Allow users to pass one or more overlay functions directly
+        overlays = lib.mkOption {
+          type = types.listOf (types.functionTo (types.functionTo types.attrs));
+          default = [self.inputs.rust-overlay.overlays.default];
+          defaultText = lib.literalExpression "[ self.inputs.rust-overlay.overlays.default ]";
+          example = lib.literalExpression "[ myCustomOverlay ]";
+          description = ''
+            A list of nixpkgs overlay functions to apply when building the Rust kernel.
+            Each overlay should have the form: `final: prev: { … }`.
+          '';
+        };
 
-      # Allow users to pin or replace the nixpkgs they want
-      nixpkgs = lib.mkOption {
-        type = types.submodule {
-          options = {
-            path = lib.mkOption {
-              type = types.path;
-              default = self.inputs.nixpkgs;
-              defaultText = lib.literalExpression "self.inputs.nixpkgs";
-              example = lib.literalExpression "self.inputs.nixpkgs";
-              description = "Path (or flake URL) of the nixpkgs to use for Rust.";
-            };
-            extraOverlays = lib.mkOption {
-              type = types.listOf types.function;
-              default = [];
-              example = lib.literalExpression "[ (import ./my-overlay.nix) ]";
-              description = "Additional overlay functions to merge with `overlays`.";
+        # Allow users to pin or replace the nixpkgs they want
+        nixpkgs = lib.mkOption {
+          type = types.submodule {
+            options = {
+              path = lib.mkOption {
+                type = types.path;
+                default = self.inputs.nixpkgs;
+                defaultText = lib.literalExpression "self.inputs.nixpkgs";
+                example = lib.literalExpression "self.inputs.nixpkgs";
+                description = "Path (or flake URL) of the nixpkgs to use for Rust.";
+              };
+              extraOverlays = lib.mkOption {
+                type = types.listOf (types.functionTo (types.functionTo types.attrs));
+                default = [];
+                example = lib.literalExpression "[ (import ./my-overlay.nix) ]";
+                description = "Additional overlay functions to merge with `overlays`.";
+              };
             };
           };
+          default = {
+            path = self.inputs.nixpkgs;
+            extraOverlays = [];
+          };
+          description = "Configuration for the nixpkgs instance used by the Rust kernel.";
         };
-        default = {
-          path = self.inputs.nixpkgs;
-          extraOverlays = [];
-        };
-        description = "Configuration for the nixpkgs instance used by the Rust kernel.";
-      };
-    }
-    // kernelModule.options;
-    
+      }
+      // kernelModule.options;
+
     config = lib.mkIf config.enable {
       build = mkKernel (kernelFunc config.kernelArgs);
       kernelArgs =
@@ -145,10 +148,11 @@
           # Import nixpkgs with all overlays applied
           pkgs = let
             allOverlays = config.overlays ++ config.nixpkgs.extraOverlays;
-          in import config.nixpkgs.path {
-            inherit system;
-            overlays = allOverlays;
-          };
+          in
+            import config.nixpkgs.path {
+              inherit system;
+              overlays = allOverlays;
+            };
         };
     };
   };
