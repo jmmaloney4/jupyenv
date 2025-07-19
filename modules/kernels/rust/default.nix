@@ -28,10 +28,19 @@
     name,
     ...
   }: let
+    # Create the custom pkgs with overlays applied first
+    pkgs = let
+      allOverlays = config.overlays ++ config.nixpkgs.extraOverlays;
+    in
+      import config.nixpkgs.path {
+        inherit system;
+        overlays = allOverlays;
+      };
+
     requiredRuntimePackages = [
-      config.nixpkgs.cargo
-      config.nixpkgs.gcc
-      config.nixpkgs.binutils-unwrapped
+      pkgs.cargo
+      pkgs.gcc
+      pkgs.binutils-unwrapped
     ];
     args = {inherit self system lib config name kernelName requiredRuntimePackages;};
     kernelModule = import ./../../kernel.nix args;
@@ -145,7 +154,7 @@
         kernelModule.kernelArgs
         // {
           inherit (config) evcxr;
-          # Import nixpkgs with all overlays applied
+          # Import nixpkgs with all overlays applied (same as used for requiredRuntimePackages)
           pkgs = let
             allOverlays = config.overlays ++ config.nixpkgs.extraOverlays;
           in
