@@ -63,7 +63,7 @@ The Rust kernel module now supports:
     enable = true;
     overlays = [ primaryOverlay ];
     nixpkgs = {
-      path = inputs.nixpkgs-stable;
+      path = self.inputs.nixpkgs-stable;
       extraOverlays = [ extraOverlay1 extraOverlay2 ];
     };
   };
@@ -94,7 +94,7 @@ The Rust kernel module now supports:
             })
           ];
           nixpkgs = {
-            path = nixpkgs-stable;
+            path = self.inputs.nixpkgs-stable;
             extraOverlays = [
               (final: prev: {
                 rust-analyzer = prev.rust-analyzer.overrideAttrs (old: {

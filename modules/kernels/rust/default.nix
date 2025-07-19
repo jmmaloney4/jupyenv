@@ -10,11 +10,16 @@
 
   kernelName = "rust";
   
-  # Helper function to coerce overlays into a list
+  # Helper function to coerce overlays into a list with validation
   mkOverlays = overlays:
-    if builtins.isFunction overlays then [ overlays ]
-    else if builtins.isList overlays then overlays
-    else throw "Expected a function or list of functions for Rust overlays";
+    let
+      validateOverlay = overlay:
+        if builtins.isFunction overlay then overlay
+        else throw "Expected function, got ${builtins.typeOf overlay}";
+    in
+      if builtins.isFunction overlays then [ overlays ]
+      else if builtins.isList overlays then map validateOverlay overlays
+      else throw "Expected a function or list of functions for overlays";
 
   kernelOptions = {
     config,
@@ -63,7 +68,7 @@
             ln -s ${env}/bin/$filename $out/bin/$filename
             wrapProgram $out/bin/$filename \
               --set PATH "${pkgs.lib.makeSearchPath "bin" allRuntimePackages}" \
-              --set RUST_SRC_PATH "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}"
+              --set RUST_SRC_PATH "${rust}/lib/rustlib/src/rust/library"
           done
         '';
     in
@@ -139,8 +144,7 @@
           inherit (config) evcxr;
           # Import nixpkgs with all overlays applied
           pkgs = let
-            allOverlays = mkOverlays config.overlays 
-                        ++ mkOverlays config.nixpkgs.extraOverlays;
+            allOverlays = config.overlays ++ config.nixpkgs.extraOverlays;
           in import config.nixpkgs.path {
             inherit system;
             overlays = allOverlays;

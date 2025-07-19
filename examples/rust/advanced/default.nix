@@ -47,7 +47,7 @@ in {
     overlays = [ myRustOverlay ];
     nixpkgs = {
       # Use a different nixpkgs version (e.g., stable)
-      path = inputs.nixpkgs-stable;
+      path = self.inputs.nixpkgs-stable;
       extraOverlays = [ extraToolsOverlay ];
     };
   };
@@ -65,7 +65,7 @@ in {
     ];
     nixpkgs = {
       # Use stable nixpkgs
-      path = inputs.nixpkgs-stable;
+      path = self.inputs.nixpkgs-stable;
       extraOverlays = [
         # Additional overlays
         (final: prev: {
