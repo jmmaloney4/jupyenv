@@ -101,7 +101,7 @@
       {
         evcxr = lib.mkOption {
           type = types.package;
-          default = config.nixpkgs.evcxr;
+          default = pkgs.evcxr;
           example = lib.literalExpression "pkgs.evcxr";
           description = ''
             An evaluation context for Rust.
@@ -154,14 +154,7 @@
         kernelModule.kernelArgs
         // {
           inherit (config) evcxr;
-          # Import nixpkgs with all overlays applied (same as used for requiredRuntimePackages)
-          pkgs = let
-            allOverlays = config.overlays ++ config.nixpkgs.extraOverlays;
-          in
-            import config.nixpkgs.path {
-              inherit system;
-              overlays = allOverlays;
-            };
+          inherit pkgs;
         };
     };
   };
