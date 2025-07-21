@@ -7,6 +7,7 @@
   ...
 }: let
   inherit (lib) types;
+  rustUtils = import ../../../lib/rust-utils.nix {inherit lib;};
 
   kernelName = "rust";
 
@@ -57,14 +58,22 @@
       evcxr ? pkgs.evcxr,
     }: let
       /*
-      rust-overlay recommends using `default` over `rust`.
-      Pre-aggregated package `rust` is not encouraged for stable channel since it
-      contains almost all and uncertain components.
-      https://github.com/oxalica/rust-overlay/blob/1558464ab660ddcb45a4a4a691f0004fdb06a5ee/rust-overlay.nix#L331
+      Support both rust-overlay and vanilla nixpkgs rust toolchains.
+      rust-overlay provides rust-bin.stable.latest.default with extensions,
+      while vanilla nixpkgs provides separate rustc, cargo, clippy, rustfmt packages.
       */
-      rust = pkgs.rust-bin.stable.latest.default.override {
-        extensions = ["rust-src"];
-      };
+      hasRustBin = pkgs ? rust-bin;
+      rust =
+        if hasRustBin
+        then
+          pkgs.rust-bin.stable.latest.default.override {
+            extensions = ["rust-src"];
+          }
+        else
+          pkgs.symlinkJoin {
+            name = "vanilla-rust-toolchain";
+            paths = with pkgs; [rustc cargo clippy rustfmt];
+          };
 
       allRuntimePackages = requiredRuntimePackages ++ runtimePackages ++ [rust];
 
@@ -79,7 +88,11 @@
             ln -s ${env}/bin/$filename $out/bin/$filename
             wrapProgram $out/bin/$filename \
               --set PATH "${pkgs.lib.makeSearchPath "bin" allRuntimePackages}" \
-              --set RUST_SRC_PATH "${rust}/lib/rustlib/src/rust/library"
+              --set RUST_SRC_PATH "${
+            if hasRustBin
+            then "${rust}/lib/rustlib/src/rust/library"
+            else "${pkgs.rustc}/lib/rustlib/src/rust/library"
+          }"
           done
         '';
     in
@@ -111,12 +124,13 @@
         # Allow users to pass one or more overlay functions directly
         overlays = lib.mkOption {
           type = types.listOf (types.functionTo (types.functionTo types.attrs));
-          default = [self.inputs.rust-overlay.overlays.default];
-          defaultText = lib.literalExpression "[ self.inputs.rust-overlay.overlays.default ]";
+          default = rustUtils.getRustOverlay self;
+          defaultText = lib.literalExpression "if rust-overlay available then [ self.inputs.rust-overlay.overlays.default ] else []";
           example = lib.literalExpression "[ myCustomOverlay ]";
           description = ''
             A list of nixpkgs overlay functions to apply when building the Rust kernel.
             Each overlay should have the form: `final: prev: { … }`.
+            Automatically includes rust-overlay if available, otherwise uses vanilla nixpkgs.
           '';
         };
 

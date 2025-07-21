@@ -9,7 +9,7 @@
     rustc = prev.rustc.overrideAttrs (old: {
       version = "1.70.0";
     });
-    
+
     # Add custom rust toolchain
     my-rust-toolchain = prev.rust-bin.stable.latest.default.override {
       extensions = ["rust-src" "rust-analysis" "rustfmt" "clippy"];
@@ -32,23 +32,23 @@ in {
   # Usage with custom overlay
   kernel.rust.custom-overlay = {
     enable = true;
-    overlays = [ myRustOverlay ];
+    overlays = [myRustOverlay];
   };
 
   # Usage with multiple overlays
   kernel.rust.multiple-overlays = {
     enable = true;
-    overlays = [ myRustOverlay extraToolsOverlay ];
+    overlays = [myRustOverlay extraToolsOverlay];
   };
 
   # Usage with custom nixpkgs and extra overlays
   kernel.rust.custom-nixpkgs = {
     enable = true;
-    overlays = [ myRustOverlay ];
+    overlays = [myRustOverlay];
     nixpkgs = {
       # Use a different nixpkgs version (e.g., stable)
       path = self.inputs.nixpkgs-stable;
-      extraOverlays = [ extraToolsOverlay ];
+      extraOverlays = [extraToolsOverlay];
     };
   };
 
@@ -77,4 +77,4 @@ in {
       ];
     };
   };
-} 
+}

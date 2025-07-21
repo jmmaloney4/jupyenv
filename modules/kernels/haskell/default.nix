@@ -127,17 +127,16 @@
                             uuid-types = self.uuid-types_1_0_6;
                             uuid = self.uuid_1_3_16;
                             # https://github.com/ndmitchell/hlint/issues/1593
-                            hlint =
-                              self
+                            hlint = self
                               .hlint_3_8
                               .overrideAttrs (old: {
-                                src = sel.fetchFromGitHub {
-                                  owner = "ndmitchell";
-                                  repo = "hlint";
-                                  rev = "7aafde56f6bc526aedb95fb282d8fd2b4ea290cc";
-                                  sha256 = "sha256-B5aO6pec+Cpxelv7+Mlt1FWjLGwsQCXI0thjCMpXqeE=";
-                                };
-                              });
+                              src = sel.fetchFromGitHub {
+                                owner = "ndmitchell";
+                                repo = "hlint";
+                                rev = "7aafde56f6bc526aedb95fb282d8fd2b4ea290cc";
+                                sha256 = "sha256-B5aO6pec+Cpxelv7+Mlt1FWjLGwsQCXI0thjCMpXqeE=";
+                              };
+                            });
                           };
                         };
                       };
