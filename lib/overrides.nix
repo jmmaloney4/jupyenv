@@ -42,18 +42,6 @@ pkgs: let
       )
       pypkgs-build-requirements)
     // {
-      testbook = prev.testbook.overridePythonAttrs (old: {
-        postPatch = ''
-          mkdir ./tmp
-          ${pkgs.unzip}/bin/unzip dist/testbook-${old.version}-py3-none-any.whl -d ./tmp
-          sed -i -e "s|if not any(arg.startswith('--Kernel|if False and not any(arg.startswith('--Kernel|" tmp/testbook/client.py
-          rm dist/testbook-${old.version}-py3-none-any.whl
-          pushd tmp
-            ${pkgs.zip}/bin/zip -r ../dist/testbook-${old.version}-py3-none-any.whl ./*
-          popd
-          rm -rf tmp
-        '';
-      });
       rpds-py = prev.rpds-py.overridePythonAttrs (old: {
         cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
           inherit (old) src;
