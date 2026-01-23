@@ -24,7 +24,7 @@ in {
       inherit (jupyenv.lib.${system}) mkJupyterlabNew;
 
       jupyterlab = mkJupyterlabNew ({...}: {
-        nixpkgs = pkgs;
+        nixpkgs = cfg.pkgs;
         imports = [cfg.kernels];
       });
     in {
