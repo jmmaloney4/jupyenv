@@ -106,6 +106,7 @@
     runtimePackages ? [], # runtime package available to all binaries
     flakes ? [], # flakes where to detect custom kernels/extensions
   }: let
+    pkgs = jupyterlabEnvArgs.pkgs or pkgs;
     allRuntimePackages =
       runtimePackages
       # nodejs and npm are needed to be able to install extensions
