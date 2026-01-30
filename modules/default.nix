@@ -8,9 +8,7 @@
   ...
 }: let
   types = lib.types;
-  nixpkgs-poetry = config.nixpkgs.appendOverlays [
-    self.inputs.poetry2nix.overlays.default
-  ];
+  nixpkgs-poetry = config.nixpkgs.extend self.inputs.poetry2nix.overlays.default;
 in {
   options = {
     jupyterlab = {
