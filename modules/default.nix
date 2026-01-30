@@ -93,6 +93,7 @@ in {
         pkgs = nixpkgs-poetry;
         inherit
           (config.jupyterlab.jupyterlabEnvArgs)
+
           env
           ;
       };
