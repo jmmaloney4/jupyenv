@@ -109,10 +109,9 @@
     pkgs = jupyterlabEnvArgs.pkgs or pkgs;
     allRuntimePackages =
       runtimePackages
-      # nodejs and npm are needed to be able to install extensions
+      # nodejs is needed to be able to install extensions
       ++ (with pkgs; [
         nodejs
-        npm
       ]);
 
     kernelDerivations = kernels;
