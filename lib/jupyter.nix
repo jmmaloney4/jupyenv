@@ -112,7 +112,7 @@
       # nodejs and npm are needed to be able to install extensions
       ++ (with pkgs; [
         nodejs
-        nodePackages.npm
+        npm
       ]);
 
     kernelDerivations = kernels;
